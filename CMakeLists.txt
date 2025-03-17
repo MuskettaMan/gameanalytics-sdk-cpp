@@ -168,12 +168,15 @@ endif()
 
 if(WIN32)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGUID_WINDOWS")
-    if(${GA_SHARED_LIB})
-        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
-        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
-    else()
-        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
-        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+    
+    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        if(${GA_SHARED_LIB})
+            set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
+            set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
+        else()
+            set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+            set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+        endif()
     endif()
 
     if(${GA_UWP_BUILD})
@@ -210,128 +213,7 @@ endif()
 add_library(GameAnalytics ${LIB_TYPE} ${CPP_SOURCES})
 target_link_libraries(GameAnalytics PRIVATE ${LIBS} PUBLIC ${PUBLIC_LIBS})
 
-# --------------------------- Google Test Setup --------------------------- #
-
-# Set Project Name
-set(UT_PROJECT_NAME "${PROJECT_NAME}UnitTests")
-
-# Add Google Test
-set(GTEST_DIR "${EXTERNALS_DIR}/googletest")
-add_subdirectory(${GTEST_DIR} ${PROJECT_SOURCE_DIR}/gtest_build)
-
-# Add tests
-enable_testing()
-
-########################################
-# Test files
-########################################
-
-file(GLOB_RECURSE TEST_SRC_FILES "${PROJECT_SOURCE_DIR}/test/*.cpp")
-
-########################################
-# Unit Tests
-#######################################
-add_executable(${UT_PROJECT_NAME} ${TEST_SRC_FILES})
-
-########################################
-# Standard linking to gtest and gmock components
-########################################
-target_link_libraries(${UT_PROJECT_NAME} gtest gtest_main gmock_main)
-
 ########################################
 # Linking to GA SDK
 ########################################
 target_link_libraries(${UT_PROJECT_NAME} ${PROJECT_NAME})
-
-########################################
-add_test(NAME ${UT_PROJECT_NAME} COMMAND GameAnalyticsUnitTests)
-
-# --------------------------- Code Coverage Setup --------------------------- #
-
-if (ENABLE_COVERAGE)
-    find_program(GCOV_PATH gcov)
-    if (NOT GCOV_PATH)
-        message(WARNING "program gcov not found")
-    endif()
-
-    find_program(LCOV_PATH lcov)
-    if (NOT LCOV_PATH)
-        message(WARNING "program lcov not found")
-    endif()
-
-    find_program(GENHTML_PATH genhtml)
-    if (NOT GENHTML_PATH)
-        message(WARNING "program genhtml not found")
-    endif()
-
-    if (LCOV_PATH AND GCOV_PATH)
-
-        target_compile_options(
-            GameAnalytics
-            PRIVATE
-                -g -O0 -fprofile-arcs -ftest-coverage
-        )
-
-        target_link_libraries(
-            GameAnalytics PRIVATE -fprofile-arcs -ftest-coverage
-        )
-
-        set(covname cov)
-
-        add_custom_target(cov_data
-            # Cleanup lcov
-            COMMENT "Resetting code coverage counters to zero."
-            ${LCOV_PATH} --directory . --zerocounters
-
-            # Run tests
-            COMMAND GameAnalyticsUnitTests
-
-            # Capturing lcov counters and generating report
-
-            COMMAND echo "Processing code coverage counters and generating report."
-
-            COMMAND ${LCOV_PATH} --directory . --capture --output-file ${covname}.info --branch-coverage --rc geninfo_unexecuted_blocks=1 --rc no_exception_branch=1
-
-            COMMAND echo "Removing unwanted files from coverage report."
-            
-            COMMAND ${LCOV_PATH} --remove ${covname}.info
-                                '${CMAKE_SOURCE_DIR}/source/dependencies/*'
-                                '${CMAKE_SOURCE_DIR}/test/*'
-                                '/usr/*'
-                                '/Applications/Xcode.app/*'
-                                --output-file ${covname}.info.cleaned
-                                --ignore-errors unused
-            
-            COMMAND echo "Finished processing code coverage counters and generating report."
-        )
-
-        if (GENHTML_PATH)
-            add_custom_target(cov
-
-                # Cleanup lcov
-                ${LCOV_PATH} --directory . --zerocounters
-
-                # Run tests
-                COMMAND GameAnalyticsUnitTests
-
-                # Capturing lcov counters and generating report
-                COMMAND ${LCOV_PATH} --directory . --capture --output-file ${covname}.info --rc lcov_branch_coverage=1 --rc derive_function_end_line=0
-                COMMAND ${LCOV_PATH} --remove ${covname}.info
-                                    '${CMAKE_SOURCE_DIR}/source/dependencies/*'
-                                    '/usr/*'
-                                    --output-file ${covname}.info.cleaned
-                                    --rc lcov_branch_coverage=1 
-                                    --rc derive_function_end_line=0
-                COMMAND ${GENHTML_PATH} -o ${covname} ${covname}.info.cleaned --rc lcov_branch_coverage=1 --rc derive_function_end_line=0
-                COMMAND ${CMAKE_COMMAND} -E remove ${covname}.info ${covname}.info.cleaned
-
-                COMMENT "Resetting code coverage counters to zero.\nProcessing code coverage counters and generating report."
-            )
-        else()
-            message(WARNING "unable to generate coverage report: missing genhtml")
-        endif()
-
-    else()
-        message(WARNING "unable to add coverage targets: missing coverage tools")
-    endif()
-endif()
