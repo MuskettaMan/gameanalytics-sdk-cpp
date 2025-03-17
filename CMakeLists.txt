@@ -34,7 +34,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_CXX_EXTENSIONS NO)
 
-
 include_directories(
     # gameanalytics includes
     "${GA_SOURCE_DIR}/gameanalytics"
@@ -212,6 +211,7 @@ endif()
 
 add_library(GameAnalytics ${LIB_TYPE} ${CPP_SOURCES})
 target_link_libraries(GameAnalytics PRIVATE ${LIBS} PUBLIC ${PUBLIC_LIBS})
+target_include_directories(GameAnalytics PUBLIC "${INCLUDE_DIR}")
 
 ########################################
 # Linking to GA SDK
