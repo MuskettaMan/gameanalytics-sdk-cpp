@@ -146,16 +146,16 @@ else()
 
     add_definitions("-DUSE_OPENSSL -DCURL_STATICLIB -DCRYPTOPP_DISABLE_ASM")
 
-    link_directories(
-        "${EXTERNALS_DIR}/openssl/1.1.1d/libs/${PLATFORM}"
-        "${EXTERNALS_DIR}/curl/lib/${PLATFORM}"
-    )
-
     if(WIN32)
-        set(LIBS libcurl.lib libeay32.lib ssleay32.lib)
+        set(LIBS "${EXTERNALS_DIR}/curl/lib/${PLATFORM}/libcurl.lib"
+                 "${EXTERNALS_DIR}/openssl/1.1.1d/libs/${PLATFORM}/libeay32.lib"
+                 "${EXTERNALS_DIR}/openssl/1.1.1d/libs/${PLATFORM}/ssleay32.lib")
     else()
-        set(LIBS libcurl.a libssl.a libcrypto.a)
+        set(LIBS "${EXTERNALS_DIR}/curl/lib/${PLATFORM}/libcurl.a"
+                "${EXTERNALS_DIR}/openssl/1.1.1d/libs/${PLATFORM}/libssl.a"
+                "${EXTERNALS_DIR}/openssl/1.1.1d/libs/${PLATFORM}/libcrypto.a")
     endif()
+
 
 endif()
 
