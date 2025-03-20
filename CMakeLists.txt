@@ -197,7 +197,6 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     create_source_groups(MACOS_SOURCES)
 
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    message(STATUS "IS USING LINUX")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGUID_STDLIB -std=c++17")
 
     if(CLANG)
