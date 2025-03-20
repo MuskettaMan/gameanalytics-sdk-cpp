@@ -165,9 +165,9 @@ else()
     set(LIB_TYPE STATIC)
 endif()
 
-if(WIN32)
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGUID_WINDOWS")
-    
+
     if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         if(${GA_SHARED_LIB})
             set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
@@ -182,7 +182,7 @@ if(WIN32)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGA_UWP_BUILD")
     endif()
 
-elseif(APPLE)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGUID_CFUUID")
     FILE(GLOB_RECURSE MACOS_SOURCES "${GA_SOURCE_DIR}/gameanalytics/Platform/*.mm")
@@ -196,13 +196,14 @@ elseif(APPLE)
 
     create_source_groups(MACOS_SOURCES)
 
-elseif(LINUX)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    message(STATUS "IS USING LINUX")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGUID_STDLIB -std=c++17")
 
     if(CLANG)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
     endif()
-    
+
 endif()
 
 if(${GA_BUILD_SAMPLE})
@@ -210,6 +211,7 @@ if(${GA_BUILD_SAMPLE})
 endif()
 
 add_library(GameAnalytics ${LIB_TYPE} ${CPP_SOURCES})
+message(STATUS "${CPP_SOURCES}")
 target_link_libraries(GameAnalytics PRIVATE ${LIBS} PUBLIC ${PUBLIC_LIBS})
 target_include_directories(GameAnalytics PUBLIC "${INCLUDE_DIR}")
 
