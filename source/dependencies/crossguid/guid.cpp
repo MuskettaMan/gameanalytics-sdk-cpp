@@ -22,9 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wimplicit-function-declaration"
-
 #include <cstring>
 #include "guid.h"
 
@@ -457,5 +454,3 @@ namespace std
         lhs.swap(rhs);
     }
 }
-
-#pragma clang diagnostic pop
